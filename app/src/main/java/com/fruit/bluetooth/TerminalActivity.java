@@ -49,13 +49,13 @@ public class TerminalActivity extends Activity {
         setContentView(R.layout.activity_terminal);
         Log.i("Check", "onCreate");
 
-        textRead = (TextView)findViewById(R.id.textRead);
-        textStatus = (TextView)findViewById(R.id.textStatus);
-        etMessage = (EditText)findViewById(R.id.etMessage);
+        textRead = (TextView) findViewById(R.id.textRead);
+        textStatus = (TextView) findViewById(R.id.textStatus);
+        etMessage = (EditText) findViewById(R.id.etMessage);
 
         bt = new BluetoothSPP(this);
 
-        if(!bt.isBluetoothAvailable()) {
+        if (!bt.isBluetoothAvailable()) {
             Toast.makeText(getApplicationContext()
                     , "Bluetooth is not available"
                     , Toast.LENGTH_SHORT).show();
@@ -95,22 +95,22 @@ public class TerminalActivity extends Activity {
 
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if(id == R.id.menu_android_connect) {
+        if (id == R.id.menu_android_connect) {
             bt.setDeviceTarget(BluetoothState.DEVICE_ANDROID);
-			/*
-			if(bt.getServiceState() == BluetoothState.STATE_CONNECTED)
+            /*
+            if(bt.getServiceState() == BluetoothState.STATE_CONNECTED)
     			bt.disconnect();*/
             Intent intent = new Intent(getApplicationContext(), DeviceList.class);
             startActivityForResult(intent, BluetoothState.REQUEST_CONNECT_DEVICE);
-        } else if(id == R.id.menu_device_connect) {
+        } else if (id == R.id.menu_device_connect) {
             bt.setDeviceTarget(BluetoothState.DEVICE_OTHER);
 			/*
 			if(bt.getServiceState() == BluetoothState.STATE_CONNECTED)
     			bt.disconnect();*/
             Intent intent = new Intent(getApplicationContext(), DeviceList.class);
             startActivityForResult(intent, BluetoothState.REQUEST_CONNECT_DEVICE);
-        } else if(id == R.id.menu_disconnect) {
-            if(bt.getServiceState() == BluetoothState.STATE_CONNECTED)
+        } else if (id == R.id.menu_disconnect) {
+            if (bt.getServiceState() == BluetoothState.STATE_CONNECTED)
                 bt.disconnect();
         }
         return super.onOptionsItemSelected(item);
@@ -127,19 +127,21 @@ public class TerminalActivity extends Activity {
             Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(intent, BluetoothState.REQUEST_ENABLE_BT);
         } else {
-            if(!bt.isServiceAvailable()) {
+            if (!bt.isServiceAvailable()) {
                 bt.setupService();
                 bt.startService(BluetoothState.DEVICE_ANDROID);
                 setup();
             }
+
+            linkOneBlueTooth();
         }
     }
 
     public void setup() {
-        Button btnSend = (Button)findViewById(R.id.btnSend);
-        btnSend.setOnClickListener(new OnClickListener(){
-            public void onClick(View v){
-                if(etMessage.getText().length() != 0) {
+        Button btnSend = (Button) findViewById(R.id.btnSend);
+        btnSend.setOnClickListener(new OnClickListener() {
+            public void onClick(View v) {
+                if (etMessage.getText().length() != 0) {
                     bt.send(etMessage.getText().toString(), true);
                     etMessage.setText("");
                 }
@@ -148,11 +150,11 @@ public class TerminalActivity extends Activity {
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(requestCode == BluetoothState.REQUEST_CONNECT_DEVICE) {
-            if(resultCode == Activity.RESULT_OK)
+        if (requestCode == BluetoothState.REQUEST_CONNECT_DEVICE) {
+            if (resultCode == Activity.RESULT_OK)
                 bt.connect(data);
-        } else if(requestCode == BluetoothState.REQUEST_ENABLE_BT) {
-            if(resultCode == Activity.RESULT_OK) {
+        } else if (requestCode == BluetoothState.REQUEST_ENABLE_BT) {
+            if (resultCode == Activity.RESULT_OK) {
                 bt.setupService();
                 bt.startService(BluetoothState.DEVICE_ANDROID);
                 setup();
@@ -163,6 +165,15 @@ public class TerminalActivity extends Activity {
                 finish();
             }
         }
+    }
+
+    private void linkOneBlueTooth() {
+        bt.setDeviceTarget(BluetoothState.DEVICE_OTHER); //表示为：非Android系统的蓝牙通信设备 //等待蓝牙设备空闲后再开始连接
+        new Handler().postDelayed(new Runnable() {
+            public void run() {
+                bt.connect("B4:0B:44:35:EB:0A"); //这里的mac为你自己蓝牙的mac
+            }
+        }, 700); //设置至少大于500的延迟。
     }
 
 }
